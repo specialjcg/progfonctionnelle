@@ -2,18 +2,12 @@
   "name": "progfonctionnelle",
   "version": "0.1.0",
   "private": true,
-  "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
-    "lint": "vue-cli-service lint",
-    "electron:build": "vue-cli-service electron:build",
-    "electron:serve": "vue-cli-service electron:serve",
-    "postinstall": "electron-builder install-app-deps",
-    "postuninstall": "electron-builder install-app-deps",
-    "test:unit": "vue-cli-service test:unit"
-  },
   "main": "background.js",
   "dependencies": {
+    "@types/mysql": "^2.15.5",
+    "axios": "^0.18.0",
+    "cors": "^2.8.5",
+    "mysql": "^2.17.1",
     "vue": "^2.6.6",
     "vue-class-component": "^6.0.0",
     "vue-property-decorator": "^8.0.0"
@@ -59,6 +53,16 @@
       "autoprefixer": {}
     }
   },
+ "scripts": {
+   "serve": "vue-cli-service serve",
+   "build": "vue-cli-service build",
+   "lint": "vue-cli-service lint",
+   "electron:build": "vue-cli-service electron:build",
+   "electron:serve": "vue-cli-service electron:serve",
+   "postinstall": "electron-builder install-app-deps",
+   "postuninstall": "electron-builder install-app-deps",
+   "test:unit": "vue-cli-service test:unit"
+ },
   "browserslist": [
     "> 1%",
     "last 2 versions",

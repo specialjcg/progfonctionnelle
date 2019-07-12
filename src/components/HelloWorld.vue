@@ -1,20 +1,27 @@
 <template>
   <div class="hello">
-    <div class="gradient-button gradient-button-1" @click="addATask(cells)">
-      Ajouter une tache
+    <div class="gradient-button gradient-button-1" @click="addATask(MyTasks)">
+      Ajouter une tache {{ message }}
     </div>
     <div
-      v-for="i in cells"
-      :id="identifiesTheEntireBoxAndTextOfTheTask(i)"
-      :key="i"
+      v-for="task in MyTasks"
+      :id="identifiesTheEntireBoxAndTextOfTheTask(task)"
+      :key="task.id"
       class="fondcheckbox"
     >
-      <input v-model="checked[i]" type="checkbox" />
       <input
-        v-model="msg[i]"
-        :class="validateTheTaskAndWriteItsText(i)"
+        v-model="task.checked"
+        type="checkbox"
+        @click="
+          addEventOnTasks(task, task.checked === true ? 'uncheck' : 'check')
+        "
+      />
+      <input
+        v-model="task.tache_nom"
+        :class="validateTheTaskAndWriteItsText(task)"
         type="text"
         placeholder="ma tache"
+        @change="addEventOnTasks(task, 'modif')"
       />
       <svg
         class="carroussel__nav"
@@ -22,7 +29,7 @@
         height="30"
         xmlns="http://www.w3.org/2000/svg"
         version="1.1"
-        @click="deleteATask(i)"
+        @click="deleteATask(task)"
       >
         <polyline points="0,0 15,15 0,30 30,0 15,15 30,30" class="stroke-1" />
       </svg>
@@ -32,36 +39,175 @@
 
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
+import axios from "axios";
 
+class task {
+  id: number;
+  checked: boolean;
+  tache_nom: string;
+  user_id: number;
+
+  etat: string;
+  type_de_tache: string;
+  date_creation: Date;
+  date_activation: Date;
+  date_deactiver: Date;
+  constructor(
+    checked: boolean,
+    msg: string,
+    id: number,
+    user_id: number,
+    etat: string,
+    type_de_tache: string,
+    date_creation: Date,
+    date_activation: Date,
+    date_deactiver: Date
+  ) {
+    this.checked = checked;
+    this.tache_nom = msg;
+    this.id = id;
+    this.user_id = user_id;
+    (this.etat = etat),
+      (this.type_de_tache = type_de_tache),
+      (this.date_creation = date_creation),
+      (this.date_activation = date_activation),
+      (this.date_deactiver = date_deactiver);
+  }
+}
+class listTasks<task> {}
 @Component({})
 export default class HelloWorld extends Vue {
-  checked: boolean[] = [];
-  cells: number = 0;
-  msg: string[] = [];
+  MyTasks: Array<task> = [];
+  userid = 0;
+  message = "";
+  mounted() {
+    axios
+      .get("http://localhost:3000/maliste")
+      .then(response => {
+        for (var i = 0; i < response.data.length; i++) {
+          Vue.set(
+            this.MyTasks,
+            i,
+            new task(
+              response.data[i].etat === "check",
+              response.data[i].tache_nom,
+              response.data[i].id,
+              response.data[i].user_id,
+              response.data[i].etat,
+              response.data[i].type_de_tache,
+              response.data[i].date_creation,
+              response.data[i].date_activation,
+              response.data[i].date_deactiver
+            )
+          );
+        }
+      })
+      .catch(e => {
+        this.message = e;
+      });
+  }
 
-  validateTheTaskAndWriteItsText(index: number): string {
-    if (this.checked[index]) {
+  validateTheTaskAndWriteItsText(index: task): string {
+    if (index.checked) {
       return "label1";
     } else {
       return "label";
     }
   }
+  addEventOnTasks(evenOnTask: task, event: string) {
+    axios
+      .post("http://localhost:3000/addmaliste/", {
+        user_id: evenOnTask.user_id,
+        tache_nom: evenOnTask.tache_nom,
+        etat: event,
+        type_de_tache: evenOnTask.type_de_tache,
+        date_creation: evenOnTask.date_creation,
+        date_activation: new Date(),
+        date_deactiver: ""
+      })
+      .then(function(response) {
+        console.log("saved successfully");
+      });
+  }
+  addATask(cells: Array<task>) {
+     
+    axios.get("http://localhost:3000/userid/").then(response => {
+      this.userid = ++response.data.user_id;
+       Vue.set(
+      this.MyTasks,
+      this.MyTasks.length,
+      new task(
+        false,
+        "",
+        0,
+        this.userid,
+        "en cour",
+        "",
+        new Date(),
+        new Date(),
+        new Date()
+      )
+    );
+  axios
+      .post("http://localhost:3000/addmaliste/", {
+        user_id: this.userid,
+        tache_nom: "",
+        etat: "en cour",
+        type_de_tache: "",
 
-  addATask(cells: number) {
-    return cells++;
+        date_creation: new Date(),
+        date_activation: new Date(),
+        date_deactiver: ""
+      })
+      .then(function(response) {
+        console.log("saved successfully");
+      });
+
+
+    });
+
+  
+
+  
   }
 
-  identifiesTheEntireBoxAndTextOfTheTask(index: number): string {
-    var identitédelatache: string = "tacheencour" + index;
+  identifiesTheEntireBoxAndTextOfTheTask(index: task): string {
+    var identitédelatache: string = "tacheencour" + index.id;
     return identitédelatache;
   }
-  deleteATask(index: number) {
-    const cardinfo = document.getElementById("tacheencour" + index)!;
-    if (cardinfo.parentNode) {
-      cardinfo.parentNode.removeChild(cardinfo);
-    }
+  deleteATask(index: task) {
+ 
+      axios
+        .get("http://localhost:3000/DeleteTask/" + index.id)
+        .then(response => {
+          for (var i = 0; i < response.data.length; i++) {
+            Vue.set(
+              this.MyTasks,
+              i,
+              new task(
+                response.data[i].etat === "check",
+                response.data[i].tache_nom,
+                response.data[i].id,
+                response.data[i].user_id,
+                response.data[i].etat,
+                response.data[i].type_de_tache,
+                response.data[i].date_creation,
+                response.data[i].date_activation,
+                response.data[i].date_deactiver
+              )
+            );
+          }
+             const cardinfo = document.getElementById("tacheencour" + index.id)!;
+      if (cardinfo.parentNode) {
+        cardinfo.parentNode.removeChild(cardinfo);
+      }
+        })
+        .catch(e => {
+          this.message = e;
+        });
+    } 
   }
-}
+
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
@@ -81,7 +227,7 @@ $color5: rgba(229, 235, 135, 1);
 .hello {
   width: 50vw;
   height: 100vh;
-  background-color: $color5;
+  background-color: black;
   margin: auto;
   border-radius: 1em;
   text-align: center;
@@ -135,7 +281,7 @@ svg {
   display: inline-block;
   font: 2rem "Fira Sans", sans-serif;
   margin-top: 1vh;
-  color: black;
+  color: white;
   background: transparent;
   border: none;
 }
