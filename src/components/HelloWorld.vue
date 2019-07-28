@@ -1,15 +1,20 @@
 <template>
-  <div class="hello">
+<div class="container">
+  <div class="row">
+    <div class="col">
+     <div class="card">
     <div class="gradient-button gradient-button-1" @click="addATask(MyTasks)">
       Ajouter une tache {{ message }}
     </div>
+
     <div
       v-for="task in MyTasks"
       :id="identifiesTheEntireBoxAndTextOfTheTask(task)"
       :key="task.id"
       class="fondcheckbox"
     >
-      <input
+    
+  <input
         v-model="task.checked"
         type="checkbox"
         @click="
@@ -18,29 +23,66 @@
       />
       <input
         v-model="task.tache_nom"
-        :class="validateTheTaskAndWriteItsText(task)"
+        :class=" validateTheTaskAndWriteItsText(task)"
         type="text"
         placeholder="ma tache"
         @change="addEventOnTasks(task, 'modif')"
       />
-      <svg
-        class="carroussel__nav"
-        width="30"
-        height="30"
-        xmlns="http://www.w3.org/2000/svg"
-        version="1.1"
-        @click="deleteATask(task)"
-      >
-        <polyline points="0,0 15,15 0,30 30,0 15,15 30,30" class="stroke-1" />
-      </svg>
+
+      <span id="iconpomo" style="font-size: 1.8rem;">
+ <i class="far fa-trash-alt"  @click="deleteATask(task)">&nbsp;</i>
+ <i class="far fa-play-circle" v-if="!timer" @click="startTimer">&nbsp;  </i>
+<i class="far fa-pause-circle" v-if="timer" @click="stopTimer">&nbsp;  </i>
+ <i class="fas fa-undo" v-if="resetButton" @click="resetTimer">&nbsp;  </i>
+
+</span>
+
+     
     </div>
   </div>
+    </div>
+       <div class="col">
+      <div class="card">
+ 
+  
+  <h2 class="title is-6">{{title}}</h2>
+  
+  
+
+  
+  <radial-progress-bar :diameter="300"
+                       :completed-steps="completedSteps"
+                       :total-steps="totalSteps">
+   <div id="timer">
+    <span id="minutes">{{ minutes() }}</span>
+    <span id="middle">:</span>
+    <span id="seconds">{{ seconds() }}</span>
+  </div>
+   </radial-progress-bar>
+</div>
+
+</div>
+
+
+
+  
+ 
+  </div>
+</div>
+
+  
+   
+ 
+ 
+  
+
 </template>
 
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
 import axios from "axios";
-
+import RadialProgressBar from "vue-radial-progress";
+Vue.component("RadialProgressBar", RadialProgressBar);
 class task {
   id: number;
   checked: boolean;
@@ -80,6 +122,52 @@ export default class HelloWorld extends Vue {
   MyTasks: Array<task> = [];
   userid = 0;
   message = "";
+  timer = null;
+  totalTime = 25 * 60;
+  completedSteps = 0;
+  totalSteps = 25 * 60;
+  resetButton = false;
+  title = "Pomodoro à lancer";
+  startTimer() {
+    this.timer = setInterval(() => this.countdown(), 1000);
+    this.resetButton = true;
+    this.title = "Travail en cour";
+  }
+  stopTimer() {
+    clearInterval(this.timer);
+    this.timer = null;
+    this.resetButton = true;
+    this.title = "N'abandonner pas , continuez";
+  }
+  resetTimer() {
+    this.totalTime = 25 * 60;
+    this.completedSteps = 0;
+    clearInterval(this.timer);
+    this.timer = null;
+    this.resetButton = false;
+    this.title = "Pomodoro à lancer";
+  }
+  padTime(time) {
+    return (time < 10 ? "0" : "") + time;
+  }
+  countdown() {
+    if (this.totalTime >= 1) {
+      this.completedSteps++;
+      this.totalTime--;
+    } else {
+      this.totalTime = 0;
+
+      this.resetTimer();
+    }
+  }
+  minutes() {
+    const minutes = Math.floor(this.totalTime / 60);
+    return this.padTime(minutes);
+  }
+  seconds() {
+    const seconds = this.totalTime - this.minutes() * 60;
+    return this.padTime(seconds);
+  }
   mounted() {
     axios
       .get("http://localhost:3000/maliste")
@@ -109,9 +197,9 @@ export default class HelloWorld extends Vue {
 
   validateTheTaskAndWriteItsText(index: task): string {
     if (index.checked) {
-      return "label1";
+      return "essai1";
     } else {
-      return "label";
+      return "essai";
     }
   }
   addEventOnTasks(evenOnTask: task, event: string) {
@@ -130,45 +218,38 @@ export default class HelloWorld extends Vue {
       });
   }
   addATask(cells: Array<task>) {
-     
     axios.get("http://localhost:3000/userid/").then(response => {
       this.userid = ++response.data.user_id;
-       Vue.set(
-      this.MyTasks,
-      this.MyTasks.length,
-      new task(
-        false,
-        "",
-        0,
-        this.userid,
-        "en cour",
-        "",
-        new Date(),
-        new Date(),
-        new Date()
-      )
-    );
-  axios
-      .post("http://localhost:3000/addmaliste/", {
-        user_id: this.userid,
-        tache_nom: "",
-        etat: "en cour",
-        type_de_tache: "",
+      Vue.set(
+        this.MyTasks,
+        this.MyTasks.length,
+        new task(
+          false,
+          "",
+          0,
+          this.userid,
+          "en cour",
+          "",
+          new Date(),
+          new Date(),
+          new Date()
+        )
+      );
+      axios
+        .post("http://localhost:3000/addmaliste/", {
+          user_id: this.userid,
+          tache_nom: "",
+          etat: "en cour",
+          type_de_tache: "",
 
-        date_creation: new Date(),
-        date_activation: new Date(),
-        date_deactiver: ""
-      })
-      .then(function(response) {
-        console.log("saved successfully");
-      });
-
-
+          date_creation: new Date(),
+          date_activation: new Date(),
+          date_deactiver: ""
+        })
+        .then(function(response) {
+          console.log("saved successfully");
+        });
     });
-
-  
-
-  
   }
 
   identifiesTheEntireBoxAndTextOfTheTask(index: task): string {
@@ -176,83 +257,92 @@ export default class HelloWorld extends Vue {
     return identitédelatache;
   }
   deleteATask(index: task) {
- 
-      axios
-        .get("http://localhost:3000/DeleteTask/" + index.id)
-        .then(response => {
-          for (var i = 0; i < response.data.length; i++) {
-            Vue.set(
-              this.MyTasks,
-              i,
-              new task(
-                response.data[i].etat === "check",
-                response.data[i].tache_nom,
-                response.data[i].id,
-                response.data[i].user_id,
-                response.data[i].etat,
-                response.data[i].type_de_tache,
-                response.data[i].date_creation,
-                response.data[i].date_activation,
-                response.data[i].date_deactiver
-              )
-            );
-          }
-             const cardinfo = document.getElementById("tacheencour" + index.id)!;
-      if (cardinfo.parentNode) {
-        cardinfo.parentNode.removeChild(cardinfo);
-      }
-        })
-        .catch(e => {
-          this.message = e;
-        });
-    } 
+    axios
+      .get("http://localhost:3000/DeleteTask/" + index.id)
+      .then(response => {
+        for (var i = 0; i < response.data.length; i++) {
+          Vue.set(
+            this.MyTasks,
+            i,
+            new task(
+              response.data[i].etat === "check",
+              response.data[i].tache_nom,
+              response.data[i].id,
+              response.data[i].user_id,
+              response.data[i].etat,
+              response.data[i].type_de_tache,
+              response.data[i].date_creation,
+              response.data[i].date_activation,
+              response.data[i].date_deactiver
+            )
+          );
+        }
+        const cardinfo = document.getElementById("tacheencour" + index.id)!;
+        if (cardinfo.parentNode) {
+          cardinfo.parentNode.removeChild(cardinfo);
+        }
+      })
+      .catch(e => {
+        this.message = e;
+      });
   }
-
+}
 </script>
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped lang="scss">
-$color1: rgba(26, 126, 142, 1);
-$color2: rgba(172, 195, 212, 1);
-$color3: rgba(198, 217, 247, 1);
-$color4: rgba(234, 230, 192, 1);
-$color5: rgba(229, 235, 135, 1);
+@import url("https://fonts.googleapis.com/css?family=Merriweather&display=swap");
+@import "/home/specialjcg/site web/progfonctionnelle/src/components/fontawesome-free-5.9.0-web/css/all.css";
+
+$color1: #fcf9ec;
+$color5: #fcf9ec;
+//boutons
+$color4: #b0f4e6;
+
+//cards
+$color2: #12d3cf;
+$color3: #67eaca;
+
+#message {
+  color: $color2;
+  font-size: 50px;
+  margin-bottom: 20px;
+}
+#iconpomo{
+  color: $color2;
+
+
+}
+#timer {
+  font-size: 3em;
+  line-height: 1;
+  margin-bottom: 1vh;
+}
 .stroke-1 {
-  stroke: $color5;
+  stroke: $color2;
   stroke-width: 5;
   stroke-linecap: butt;
   fill: none;
   stroke-linejoin: miter;
 }
-.hello {
-  width: 50vw;
-  height: 100vh;
-  background-color: black;
-  margin: auto;
-  border-radius: 1em;
-  text-align: center;
-}
-h3 {
-  margin: 40px 0 0;
-}
 
 .gradient-button {
-  margin: 10px;
-  font: 2rem "Fira Sans", sans-serif;
+  font-family: "Merriweather", serif;
+  font-size: 2rem;
   padding: 15px;
   text-align: center;
 
   transition: 0.5s;
   background-size: 200% auto;
-  color: $color5;
+  color: black;
   box-shadow: 0 0 20px $color4;
-  border-radius: 10px;
-  width: 200px;
+
+  width: 100%;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
   transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   cursor: pointer;
   display: inline-block;
-  border-radius: 25px;
+  border-radius: 5px;
 }
 .gradient-button:hover {
   box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
@@ -261,54 +351,144 @@ h3 {
 .gradient-button-1 {
   background-image: linear-gradient(
     to right,
-    $color3 0%,
-    $color1 51%,
-    $color3 100%
+    $color1 0%,
+    $color4 51%,
+    $color1 100%
   );
 }
 .gradient-button-1:hover {
   background-position: right center;
 }
+.gradient-button-pomo {
+  font-family: "Merriweather", serif;
+  font-size: 2rem;
+  padding: 15px;
+  text-align: center;
 
-svg {
-  position: absolute;
-  margin-left: -5vh;
+  transition: 0.5s;
+  background-size: 200% auto;
+  color: black;
+  box-shadow: 0 0 20px $color4;
 
-  margin-top: 1.5vh;
-}
-
-.label {
+  width: auto;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  cursor: pointer;
   display: inline-block;
-  font: 2rem "Fira Sans", sans-serif;
-  margin-top: 1vh;
-  color: white;
-  background: transparent;
-  border: none;
+  border-radius: 5px;
 }
-.label1 {
-  display: inline-block;
-  font: 2rem "Fira Sans", sans-serif;
-  margin-top: 1vh;
-  color: $color5;
-  background: transparent;
-  border: none;
-  text-decoration: line-through;
+.gradient-button-pomo:hover {
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+  margin: 8px 10px 12px;
 }
-.fondcheckbox {
-  height: 7vh;
+.gradient-button-1-pomo {
   background-image: linear-gradient(
     to right,
-    $color3 0%,
-    $color1 51%,
-    $color3 100%
+    $color1 0%,
+    $color4 51%,
+    $color1 100%
   );
+}
+.gradient-button-1-pomo:hover {
+  background-position: right center;
+}
+.card {
+  width: auto;
+  height: auto;
+
+  margin: auto;
+  border-radius: 1em;
+  text-align: center;
+
+  position: relative;
+  max-width: 50vw;
+
+  background: linear-gradient(-45deg, $color2, $color3);
+
+  padding: 40px 20px;
+  -webkit-box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+  -webkit-transition: 0.5s;
+  transition: 0.5s;
+}
+
+.col:nth-child(1) .card,
+.col:nth-child(1) .card .title .fa {
+  background: linear-gradient(-45deg, $color2, $color3);
+}
+.col:nth-child(2) .card,
+.col:nth-child(2) .card .title .fa {
+  background: linear-gradient(-45deg, $color2, $color3);
+}
+.col:nth-child(3) .card,
+.col:nth-child(3) .card .title .fa {
+  background: linear-gradient(-45deg, $color2, $color3);
+}
+.card::before
+  .gradient-button::before
+  .gradient-button-1::before
+  .gradient-button-pomo::before
+  .gradient-button-1-pomo::before {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 40%;
+  background: rgba(255, 255, 255, 0.1);
+  z-index: 1;
+  -webkit-transform: skewY(-5deg) scale(1.5);
+  transform: skewY(-5deg) scale(1.5);
+}
+
+
+.essai {
+  display: inline-block;
+  background: transparent;
+  border: none;
+  margin-top: 0;
+  color: black;
+  outline: none;
+  width: auto;
+  font-family: "Merriweather", serif;
+  font-size: 1.2rem;
+  width: 60%;
+}
+.essai1 {
+  display: inline-block;
+  background: transparent;
+  border: none;
+  margin-top: 0;
+  color: black;
+  text-decoration: line-through;
+  outline: none;
+  width: auto;
+  font-family: "Merriweather", serif;
+  font-size: 1.2rem;
+  width: 60%;
+}
+
+.fondcheckbox {
+  height: 5%;
+  background: $color1; /* fallback for old browsers */
+  background: -webkit-linear-gradient(
+    to right,
+    $color1,
+    $color5
+  ); /* Chrome 10-25, Safari 5.1-6 */
+  background: linear-gradient(
+    to right,
+    $color1,
+    $color5
+  ); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+
   margin-left: auto;
   margin-right: auto;
   margin-top: 1vh;
-
-  width: 30vw;
-  border: 1px solid $color4;
-  border-radius: 2vh;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+  width: auto;
+  //border: 1px solid $color1;
+  border-radius: 1vh;
 }
 input[type="checkbox"] {
   -webkit-appearance: none;
@@ -316,16 +496,25 @@ input[type="checkbox"] {
   -ms-appearance: none;
 }
 input[type="checkbox"] {
+
+  top: 0;
+  left: 0;
   border-radius: 4px;
-  height: 30px;
-  width: 30px;
-  background: $color4;
+  height: 2vh;
+  width: 2vh;
+  background: $color1;
   border: 1px solid $color4;
   margin-top: 1.5vh;
-  margin-left: 2vw;
-  font-size: 3em;
+  margin-left: 1vw;
+  
   float: left;
+  outline: none;
 }
+input[type="checkbox"]:hover {
+  background: $color4;
+}
+
+
 
 input[type="checkbox"]:checked {
   background: $color5;
@@ -334,16 +523,14 @@ input[type="checkbox"]:checked {
   &:before {
     font-family: FontAwesome;
     content: "\f00c";
-    display: block;
-    color: $color1;
-    font-size: 0.6em;
+    display: inline-block;
+    color: $color2;
+    font-size: auto;
     position: absolute;
   }
-  input[type="text"] :focus {
+
+  input[type="text"] {
     outline: none;
-  }
-  .label {
-    text-decoration: underline;
   }
 }
 </style>

@@ -7,10 +7,12 @@
     "@types/mysql": "^2.15.5",
     "axios": "^0.18.0",
     "cors": "^2.8.5",
+    "lodash": "^4.17.15",
     "mysql": "^2.17.1",
     "vue": "^2.6.6",
     "vue-class-component": "^6.0.0",
-    "vue-property-decorator": "^8.0.0"
+    "vue-property-decorator": "^8.0.0",
+    "vue-radial-progress": "^0.2.10"
   },
   "devDependencies": {
     "@types/chai": "^4.1.0",
