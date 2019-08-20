@@ -3,7 +3,7 @@
   <div class="row">
     <div class="col">
      <div class="card">
-    <div class="gradient-button gradient-button-1" @click="addATask(MyTasks)">
+    <div class="gradient-button gradient-button-1 gradient-button-font" @click="addATask(MyTasks)">
       Ajouter une tache {{ message }}
     </div>
 
@@ -31,9 +31,9 @@
 
       <span id="iconpomo" style="font-size: 1.8rem;">
  <i class="far fa-trash-alt"  @click="deleteATask(task)">&nbsp;</i>
- <i class="far fa-play-circle" v-if="!timer" @click="startTimer">&nbsp;  </i>
-<i class="far fa-pause-circle" v-if="timer" @click="stopTimer">&nbsp;  </i>
- <i class="fas fa-undo" v-if="resetButton" @click="resetTimer">&nbsp;  </i>
+ <i class="far fa-play-circle" v-if="!task.timer" @click="startTimer(task)" >&nbsp;  </i>
+<i class="far fa-pause-circle" v-if="task.timer" @click="stopTimer(task)">&nbsp;  </i>
+ <i class="fas fa-undo" v-if="resetButton" @click="resetTimer(task)">&nbsp;  </i>
 
 </span>
 
@@ -45,19 +45,44 @@
       <div class="card">
  
   
-  <h2 class="title is-6">{{title}}</h2>
-  
+  <h2 >{{title}}</h2>
   
 
+
   
-  <radial-progress-bar :diameter="300"
+  <radial-progress-bar :diameter="250"
                        :completed-steps="completedSteps"
                        :total-steps="totalSteps">
    <div id="timer">
-    <span id="minutes">{{ minutes() }}</span>
-    <span id="middle">:</span>
-    <span id="seconds">{{ seconds() }}</span>
+      <div class="btn-group">
+<span id="minutes">
+ 
+<button class="btn btn-secondary dropdown-toggle gradient-button gradient-button-1 gradient-button-font2"  type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+   {{ minutes() }}
+  </button>
+  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+     <a class="dropdown-item" href="#" @click="changeMinute(0)">0</a>
+<a class="dropdown-item" href="#" @click="changeMinute(5)">5</a>
+    <a class="dropdown-item" href="#" @click="changeMinute(15)" >15</a>
+    <a class="dropdown-item" href="#" @click="changeMinute(25)">25</a>
   </div>
+</span>
+    <span id="middle">&nbsp;:&nbsp;</span>
+    <span id="seconds"><div class="dropdown">
+  <button class="btn btn-secondary dropdown-toggle gradient-button gradient-button-1 gradient-button-font2"  type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+   {{ seconds() }}
+  </button>
+  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+    <a class="dropdown-item" href="#"@click="changesecond(5)">5</a>
+    <a class="dropdown-item" href="#"@click="changesecond(15)">15</a>
+    <a class="dropdown-item" href="#"@click="changesecond(30)">30</a>
+    <a class="dropdown-item" href="#"@click="changesecond(45)">45</a>
+    <a class="dropdown-item" href="#"@click="changesecond(60)">60</a>
+  </div>
+</div></span>
+</div>
+
+</div>
    </radial-progress-bar>
 </div>
 
@@ -68,6 +93,7 @@
   
  
   </div>
+  
 </div>
 
   
@@ -81,6 +107,7 @@
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
 import axios from "axios";
+import { Howl, Howler } from "howler";
 import RadialProgressBar from "vue-radial-progress";
 Vue.component("RadialProgressBar", RadialProgressBar);
 class task {
@@ -94,6 +121,7 @@ class task {
   date_creation: Date;
   date_activation: Date;
   date_deactiver: Date;
+  timer: any;
   constructor(
     checked: boolean,
     msg: string,
@@ -122,45 +150,76 @@ export default class HelloWorld extends Vue {
   MyTasks: Array<task> = [];
   userid = 0;
   message = "";
-  timer = null;
+  timer = 0;
   totalTime = 25 * 60;
   completedSteps = 0;
   totalSteps = 25 * 60;
   resetButton = false;
   title = "Pomodoro à lancer";
-  startTimer() {
-    this.timer = setInterval(() => this.countdown(), 1000);
-    this.resetButton = true;
-    this.title = "Travail en cour";
+  changeMinute(min: number) {
+    this.totalTime = min * 60;
+    this.completedSteps = 0;
+    if (min!=0){
+    this.totalSteps = min * 60;}
+    else this.totalSteps=1
   }
-  stopTimer() {
-    clearInterval(this.timer);
-    this.timer = null;
+  changesecond(min: number) {
+    this.totalTime = this.totalTime + min;
+    this.completedSteps = 0;
+    this.totalSteps = this.totalTime ;
+  }
+  startTimer(task: task) {
+  
+    this.MyTasks.map(task1 => {
+      if (task1.timer !=0) {
+      clearInterval(task1.timer);
+    task1.timer = 0;
+     this.totalTime = 25 * 60;
+    this.completedSteps = 0;
+      }
+    });
+   
+    task.timer = setInterval(() => this.countdown(task), 1000);
+    this.resetButton = true;
+    this.title = "Travail en cour:" + "\n" + task.tache_nom;
+  }
+  testaudio() {
+    const audio = new Audio(
+      "http://soundbible.com/mp3/cartoon-birds-2_daniel-simion.mp3"
+    );
+
+    audio.play();
+  }
+  stopTimer(task: task) {
+    clearInterval(task.timer);
+    task.timer = 0;
     this.resetButton = true;
     this.title = "N'abandonner pas , continuez";
   }
-  resetTimer() {
-    this.totalTime = 25 * 60;
+  resetTimer(task: task) {
+   this.totalTime = 25 * 60;
     this.completedSteps = 0;
-    clearInterval(this.timer);
-    this.timer = null;
+    this.MyTasks.map(task =>{ clearInterval(task.timer); task.timer = 0;});
+    
+   
     this.resetButton = false;
     this.title = "Pomodoro à lancer";
   }
-  padTime(time) {
+  
+  padTime(time: number) {
     return (time < 10 ? "0" : "") + time;
   }
-  countdown() {
+  countdown(task: task) {
     if (this.totalTime >= 1) {
       this.completedSteps++;
       this.totalTime--;
     } else {
       this.totalTime = 0;
-
-      this.resetTimer();
+      this.testaudio();
+      this.resetTimer(task);
     }
   }
-  minutes() {
+  minutes(): any {
     const minutes = Math.floor(this.totalTime / 60);
     return this.padTime(minutes);
   }
@@ -256,6 +315,10 @@ export default class HelloWorld extends Vue {
     var identitédelatache: string = "tacheencour" + index.id;
     return identitédelatache;
   }
+  identifiesTheTimerAndTextOfTheTask(index: task): string {
+    var idenTimer: string = "timerencour" + index.id;
+    return idenTimer;
+  }
   deleteATask(index: task) {
     axios
       .get("http://localhost:3000/DeleteTask/" + index.id)
@@ -308,13 +371,14 @@ $color3: #67eaca;
   font-size: 50px;
   margin-bottom: 20px;
 }
-#iconpomo{
+#iconpomo {
   color: $color2;
-
-
+}
+#middle {
+  margin-top: 1vh;
 }
 #timer {
-  font-size: 3em;
+  font-size: 2rem;
   line-height: 1;
   margin-bottom: 1vh;
 }
@@ -325,11 +389,21 @@ $color3: #67eaca;
   fill: none;
   stroke-linejoin: miter;
 }
-
-.gradient-button {
+h2 {
   font-family: "Merriweather", serif;
   font-size: 2rem;
-  padding: 15px;
+  color: $color1;
+}
+.gradient-button-font {
+  font-family: "Merriweather", serif;
+  font-size: 2rem;
+}
+.gradient-button-font2 {
+  font-family: "Merriweather", serif;
+  font-size: 1.5rem;
+}
+.gradient-button {
+  padding: 10px;
   text-align: center;
 
   transition: 0.5s;
@@ -441,7 +515,6 @@ $color3: #67eaca;
   transform: skewY(-5deg) scale(1.5);
 }
 
-
 .essai {
   display: inline-block;
   background: transparent;
@@ -496,25 +569,22 @@ input[type="checkbox"] {
   -ms-appearance: none;
 }
 input[type="checkbox"] {
-
   top: 0;
   left: 0;
   border-radius: 4px;
   height: 2vh;
   width: 2vh;
   background: $color1;
-  border: 1px solid $color4;
+  border: 2px solid $color4;
   margin-top: 1.5vh;
   margin-left: 1vw;
-  
+
   float: left;
   outline: none;
 }
 input[type="checkbox"]:hover {
   background: $color4;
 }
-
-
 
 input[type="checkbox"]:checked {
   background: $color5;
