@@ -107,9 +107,9 @@
 <script lang="ts">
 import { Component, Prop, Vue } from "vue-property-decorator";
 import axios from "axios";
-import { Howl, Howler } from "howler";
+
 import RadialProgressBar from "vue-radial-progress";
-Vue.component("RadialProgressBar", RadialProgressBar);
+
 class task {
   id: number;
   checked: boolean;
@@ -145,7 +145,9 @@ class task {
   }
 }
 class listTasks<task> {}
-@Component({})
+@Component({
+ components: { RadialProgressBar}
+})
 export default class HelloWorld extends Vue {
   MyTasks: Array<task> = [];
   userid = 0;
@@ -229,7 +231,7 @@ export default class HelloWorld extends Vue {
   }
   mounted() {
     axios
-      .get("http://localhost:3000/maliste")
+      .get("https://valorisetonweb.fr:3001/maliste")
       .then(response => {
         for (var i = 0; i < response.data.length; i++) {
           Vue.set(
@@ -263,7 +265,7 @@ export default class HelloWorld extends Vue {
   }
   addEventOnTasks(evenOnTask: task, event: string) {
     axios
-      .post("http://localhost:3000/addmaliste/", {
+      .post("https://valorisetonweb.fr:3001/addmaliste/", {
         user_id: evenOnTask.user_id,
         tache_nom: evenOnTask.tache_nom,
         etat: event,
@@ -277,7 +279,7 @@ export default class HelloWorld extends Vue {
       });
   }
   addATask(cells: Array<task>) {
-    axios.get("http://localhost:3000/userid/").then(response => {
+    axios.get("https://valorisetonweb.fr:3001/userid/").then(response => {
       this.userid = ++response.data.user_id;
       Vue.set(
         this.MyTasks,
@@ -295,7 +297,7 @@ export default class HelloWorld extends Vue {
         )
       );
       axios
-        .post("http://localhost:3000/addmaliste/", {
+        .post("https://valorisetonweb.fr:3001/addmaliste/", {
           user_id: this.userid,
           tache_nom: "",
           etat: "en cour",
@@ -321,7 +323,7 @@ export default class HelloWorld extends Vue {
   }
   deleteATask(index: task) {
     axios
-      .get("http://localhost:3000/DeleteTask/" + index.id)
+      .get("https://valorisetonweb.fr:3001/DeleteTask/" + index.id)
       .then(response => {
         for (var i = 0; i < response.data.length; i++) {
           Vue.set(

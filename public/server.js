@@ -1,13 +1,5 @@
 /* eslint-disable no-console */
 const mysql = require("mysql");
-var connection = mysql.createConnection({
-  host: "127.0.0.1",
-  port: "3306",
-  user: "jcgwebdeveloper",
-  password: "septembre2018",
-  database: "liste_de_taches"
-});
-var fs = require("fs");
 var app = require("express")();
 var helmet = require("helmet-csp");
 app.use(
@@ -28,13 +20,7 @@ app.use(
 );
 const cors = require("cors");
 
-var https = require("https");
 app.use(cors());
-var sslOptions = {
-  key: fs.readFileSync("/etc/ssl/private/www.valorisetonweb.fr.key"),
-  cert: fs.readFileSync("/etc/ssl/certs/wildcard_valorisetonweb.fr.chain.pem")
-};
-https.createServer(sslOptions, app).listen(3001);
 
 const bodyParser = require("body-parser");
 app.use(cors({ origin: true }));
@@ -47,7 +33,20 @@ app.use(bodyParser.json());
   database: "liste_de_taches"
 });
 */
+var fs = require("fs");
+var https = require("https");
+var sslOptions = {
+  key: fs.readFileSync("/etc/ssl/private/www.valorisetonweb.fr.key"),
+  cert: fs.readFileSync("/etc/ssl/certs/wildcard_valorisetonweb.fr.chain.pem")
+};
 
+var connection = mysql.createConnection({
+  host: "127.0.0.1",
+  port: "3306",
+  user: "jcgwebdeveloper",
+  password: "septembre2018",
+  database: "liste_de_taches"
+});
 connection.connect();
 app.get("/maliste", (req, res) => {
   var queryString =
@@ -98,3 +97,5 @@ app.get("/DeleteTask/:messageId", (req, res) => {
   });
 });
 //connection.end();
+
+https.createServer(sslOptions, app).listen(3001);

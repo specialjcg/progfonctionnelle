@@ -20,10 +20,14 @@ describe("HelloWorld.vue", () => {
         expect(wrapper.vm.message).is.equal("");
     });
     it("should my text is write when task is validate ", () => {
+        //given
+       
         const g = wrapper.vm.MyTasks;
-        g[0].checked = true;
-        wrapper.setData({ MyTasks: g });
-        expect(wrapper.vm.MyTasks[0].checked).is.equal(true);
+        //when
+        const my_task = g[0];
+       
+        //then
+        expect(my_task.checked).is.equal(false);
     });
 });
 //# sourceMappingURL=example.spec.js.map
