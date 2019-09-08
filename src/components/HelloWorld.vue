@@ -1,107 +1,159 @@
 <template>
-<div class="container">
-  <div class="row">
-    <div class="col">
-     <div class="card">
-    <div class="gradient-button gradient-button-1 gradient-button-font" @click="addATask(MyTasks)">
-      Ajouter une tache {{ message }}
+  <div class="container">
+    <div class="row">
+      <div class="col">
+        <div class="card">
+          <div
+            class="gradient-button gradient-button-1 gradient-button-font"
+            @click="addATask(MyTasks)"
+          >
+            Ajouter une tache {{ message }}
+          </div>
+
+          <div
+            v-for="task in MyTasks"
+            :id="identifiesTheEntireBoxAndTextOfTheTask(task)"
+            :key="task.id"
+            class="fondcheckbox"
+          >
+            <input
+              v-model="task.checked"
+              type="checkbox"
+              @click="
+                addEventOnTasks(
+                  task,
+                  task.checked === true ? 'uncheck' : 'check'
+                )
+              "
+            />
+            <input
+              v-model="task.tache_nom"
+              :class="validateTheTaskAndWriteItsText(task)"
+              type="text"
+              placeholder="ma tache"
+              @change="addEventOnTasks(task, 'modif')"
+            />
+
+            <span id="iconpomo" style="font-size: 1.8rem;">
+              <em class="far fa-trash-alt" @click="deleteATask(task)"
+                >&nbsp;
+              </em>
+              <em
+                v-if="!task.timer"
+                class="far fa-play-circle"
+                @click="startTimer(task)"
+                >&nbsp;
+              </em>
+              <em
+                v-if="task.timer"
+                class="far fa-pause-circle"
+                @click="stopTimer(task)"
+                >&nbsp;
+              </em>
+              <em
+                v-if="resetButton"
+                class="fas fa-undo"
+                @click="resetTimer(task)"
+                >&nbsp;
+              </em>
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card">
+          <h2>{{ title }}</h2>
+
+          <radial-progress-bar
+            :diameter="250"
+            :completed-steps="completedSteps"
+            :total-steps="totalSteps"
+          >
+            <div id="timer">
+              <div class="btn-group">
+                <span id="minutes">
+                  <button
+                    id="dropdownMenuButton"
+                    class="btn btn-secondary dropdown-toggle gradient-button gradient-button-1 gradient-button-font2"
+                    type="button"
+                    data-toggle="dropdown"
+                    aria-haspopup="true"
+                    aria-expanded="false"
+                  >
+                    {{ minutes() }}
+                  </button>
+                  <div
+                    class="dropdown-menu"
+                    aria-labelledby="dropdownMenuButton"
+                  >
+                    <a class="dropdown-item" href="#" @click="changeMinute(0)"
+                      >0</a
+                    >
+                    <a class="dropdown-item" href="#" @click="changeMinute(5)"
+                      >5</a
+                    >
+                    <a class="dropdown-item" href="#" @click="changeMinute(15)"
+                      >15</a
+                    >
+                    <a class="dropdown-item" href="#" @click="changeMinute(25)"
+                      >25</a
+                    >
+                  </div>
+                </span>
+                <span id="middle">&nbsp;:&nbsp;</span>
+                <span id="seconds"
+                  ><div class="dropdown">
+                    <button
+                      id="dropdownMenuButton"
+                      class="btn btn-secondary dropdown-toggle gradient-button gradient-button-1 gradient-button-font2"
+                      type="button"
+                      data-toggle="dropdown"
+                      aria-haspopup="true"
+                      aria-expanded="false"
+                    >
+                      {{ seconds() }}
+                    </button>
+                    <div
+                      class="dropdown-menu"
+                      aria-labelledby="dropdownMenuButton"
+                    >
+                      <a class="dropdown-item" href="#" @click="changesecond(5)"
+                        >5</a
+                      >
+                      <a
+                        class="dropdown-item"
+                        href="#"
+                        @click="changesecond(15)"
+                        >15</a
+                      >
+                      <a
+                        class="dropdown-item"
+                        href="#"
+                        @click="changesecond(30)"
+                        >30</a
+                      >
+                      <a
+                        class="dropdown-item"
+                        href="#"
+                        @click="changesecond(45)"
+                        >45</a
+                      >
+                      <a
+                        class="dropdown-item"
+                        href="#"
+                        @click="changesecond(60)"
+                        >60</a
+                      >
+                    </div>
+                  </div></span
+                >
+              </div>
+            </div>
+          </radial-progress-bar>
+        </div>
+      </div>
     </div>
-
-    <div
-      v-for="task in MyTasks"
-      :id="identifiesTheEntireBoxAndTextOfTheTask(task)"
-      :key="task.id"
-      class="fondcheckbox"
-    >
-    
-  <input
-        v-model="task.checked"
-        type="checkbox"
-        @click="
-          addEventOnTasks(task, task.checked === true ? 'uncheck' : 'check')
-        "
-      />
-      <input
-        v-model="task.tache_nom"
-        :class=" validateTheTaskAndWriteItsText(task)"
-        type="text"
-        placeholder="ma tache"
-        @change="addEventOnTasks(task, 'modif')"
-      />
-
-      <span id="iconpomo" style="font-size: 1.8rem;">
- <i class="far fa-trash-alt"  @click="deleteATask(task)">&nbsp;</i>
- <i class="far fa-play-circle" v-if="!task.timer" @click="startTimer(task)" >&nbsp;  </i>
-<i class="far fa-pause-circle" v-if="task.timer" @click="stopTimer(task)">&nbsp;  </i>
- <i class="fas fa-undo" v-if="resetButton" @click="resetTimer(task)">&nbsp;  </i>
-
-</span>
-
-     
-    </div>
   </div>
-    </div>
-       <div class="col">
-      <div class="card">
- 
-  
-  <h2 >{{title}}</h2>
-  
-
-
-  
-  <radial-progress-bar :diameter="250"
-                       :completed-steps="completedSteps"
-                       :total-steps="totalSteps">
-   <div id="timer">
-      <div class="btn-group">
-<span id="minutes">
- 
-<button class="btn btn-secondary dropdown-toggle gradient-button gradient-button-1 gradient-button-font2"  type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-   {{ minutes() }}
-  </button>
-  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-     <a class="dropdown-item" href="#" @click="changeMinute(0)">0</a>
-<a class="dropdown-item" href="#" @click="changeMinute(5)">5</a>
-    <a class="dropdown-item" href="#" @click="changeMinute(15)" >15</a>
-    <a class="dropdown-item" href="#" @click="changeMinute(25)">25</a>
-  </div>
-</span>
-    <span id="middle">&nbsp;:&nbsp;</span>
-    <span id="seconds"><div class="dropdown">
-  <button class="btn btn-secondary dropdown-toggle gradient-button gradient-button-1 gradient-button-font2"  type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-   {{ seconds() }}
-  </button>
-  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-    <a class="dropdown-item" href="#"@click="changesecond(5)">5</a>
-    <a class="dropdown-item" href="#"@click="changesecond(15)">15</a>
-    <a class="dropdown-item" href="#"@click="changesecond(30)">30</a>
-    <a class="dropdown-item" href="#"@click="changesecond(45)">45</a>
-    <a class="dropdown-item" href="#"@click="changesecond(60)">60</a>
-  </div>
-</div></span>
-</div>
-
-</div>
-   </radial-progress-bar>
-</div>
-
-</div>
-
-
-
-  
- 
-  </div>
-  
-</div>
-
-  
-   
- 
- 
-  
-
 </template>
 
 <script lang="ts">
@@ -146,7 +198,7 @@ class task {
 }
 class listTasks<task> {}
 @Component({
- components: { RadialProgressBar}
+  components: { RadialProgressBar }
 })
 export default class HelloWorld extends Vue {
   MyTasks: Array<task> = [];
@@ -161,26 +213,25 @@ export default class HelloWorld extends Vue {
   changeMinute(min: number) {
     this.totalTime = min * 60;
     this.completedSteps = 0;
-    if (min!=0){
-    this.totalSteps = min * 60;}
-    else this.totalSteps=1
+    if (min != 0) {
+      this.totalSteps = min * 60;
+    } else this.totalSteps = 1;
   }
   changesecond(min: number) {
     this.totalTime = this.totalTime + min;
     this.completedSteps = 0;
-    this.totalSteps = this.totalTime ;
+    this.totalSteps = this.totalTime;
   }
   startTimer(task: task) {
-  
     this.MyTasks.map(task1 => {
-      if (task1.timer !=0) {
-      clearInterval(task1.timer);
-    task1.timer = 0;
-     this.totalTime = 25 * 60;
-    this.completedSteps = 0;
+      if (task1.timer != 0) {
+        clearInterval(task1.timer);
+        task1.timer = 0;
+        this.totalTime = 25 * 60;
+        this.completedSteps = 0;
       }
     });
-   
+
     task.timer = setInterval(() => this.countdown(task), 1000);
     this.resetButton = true;
     this.title = "Travail en cour:" + "\n" + task.tache_nom;
@@ -199,15 +250,17 @@ export default class HelloWorld extends Vue {
     this.title = "N'abandonner pas , continuez";
   }
   resetTimer(task: task) {
-   this.totalTime = 25 * 60;
+    this.totalTime = 25 * 60;
     this.completedSteps = 0;
-    this.MyTasks.map(task =>{ clearInterval(task.timer); task.timer = 0;});
-    
-   
+    this.MyTasks.map(task => {
+      clearInterval(task.timer);
+      task.timer = 0;
+    });
+
     this.resetButton = false;
     this.title = "Pomodoro à lancer";
   }
-  
+
   padTime(time: number) {
     return (time < 10 ? "0" : "") + time;
   }
