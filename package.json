@@ -5,7 +5,7 @@
   "main": "background.js",
   "dependencies": {
     "@types/mysql": "^2.15.5",
-    "axios": "^0.18.0",
+    "axios": "^0.21.1",
     "axios-mock-adapter": "^1.17.0",
     "cors": "^2.8.5",
     "howler": "^2.1.2",
